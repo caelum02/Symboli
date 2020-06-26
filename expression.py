@@ -1,5 +1,6 @@
-import operators as op
-from symbol import Symbol
+import symboli.operators as op
+from symboli.symbol import Symbol
+import copy
 
 class Expression(Symbol):
     def __init__(self, operator, *expr):
@@ -12,6 +13,9 @@ class Expression(Symbol):
 
     def toTex(self):
         expr_0 = self.expr[0].toTex()
+        if expr_0[0] == '\\':
+            expr_0 += ' '
+
         oper = self.operator.toTex()
 
         if isinstance(self.operator, op.BinaryOperator):
@@ -40,15 +44,27 @@ class Expression(Symbol):
                 return oper+f'\\left({expr_0}\\right)'
 
     def __add__(self, expr):
+        if type(expr) == Matrix:
+            return expr.__radd__(self)
+
         return Expression(op.SumOp(self, expr), self, expr)
 
     def __sub__(self, expr):
+        if type(expr) == Matrix:
+            return expr.__rsub__(self)
+
         return Expression(op.SubOp(self, expr), self, expr)
 
     def __mul__(self, expr):
+        if type(expr) == Matrix:
+            return expr.__rmul__(self)
+
         return Expression(op.MulOp(self, expr), self, expr)
 
     def __truediv__(self, expr):
+        if type(expr) == Matrix:
+            return expr.__rtruediv__(self)
+
         return Expression(op.DivOp(self, expr), self, expr)
     
     def __pow__(self, expr):
@@ -104,17 +120,60 @@ class Variable(Expression):
 class Constant(Variable):
     def __init__(self, name, value=None):
         self.name = name
-        self._value = value
+        self.value = value
 
         self.operator = None
 
     def evaluate(self):
-        return self._value
+        return self.value
+
+    def __add__(self, other):
+        if type(other)==Constant:
+            return Constant(str(self.value+other.value), self.value+other.value)
+
+        else:
+            super(Constant, self).__add__(other)
+
+    def __sub__(self, other):
+        if type(other)==Constant:
+            return Constant(str(self.value-other.value), self.value-other.value)
+    
+        else:
+            super(Constant, self).__sub__(other)
+
+    def __mul__(self, other):
+        if type(other)==Constant:
+            return Constant(str(self.value*other.value), self.value*other.value)
+        
+        else:
+            super(Constant, self).__mul__(other)
+
+    def __truediv__(self, other):
+        if type(other)==Constant:
+            return Constant(str(self.value/other.value), self.value/other.value)
+    
+        else:
+            super(Constant, self).__truediv__(other)
+
+    def __pow__(self, other):
+        if type(other)==Constant:
+            return Constant(str(self.value**other.value), self.value**other.value)
+
+        else:
+            super(Constant, self).__pow__(other)
+
+    def __neg__(self):
+        return Constant(str(-self.value), -self.value)
 
 class Matrix(Expression):
     def __init__(self, mat):
         self.mat = mat
         self.shape = self._shape_track()
+
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                if not isinstance(self.mat[i][j], Symbol):
+                    self.mat[i][j] = Constant(str(self.mat[i][j]), self.mat[i][j])
 
     def _shape_track(self):
         shape = []
@@ -135,15 +194,117 @@ class Matrix(Expression):
             for j in range(self.shape[1]):
                 if j!=0:
                     texstr += ' &'
-                texstr += f' {self.mat[i][0].toTex()}'
+                texstr += f' {self.mat[i][j].toTex()}'
 
         texstr += ' \\end{pmatrix}'
 
         return texstr
-
+    
     def __add__(self, other):
         if isinstance(other, Matrix):
+            if self.shape != other.shape:
+                raise ValueError
+
+            Mat = copy.deepcopy(self)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    Mat.mat[i][j] += other.mat[i][j]
             
+            return Mat
+        
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] += other
+        
+        return Matrix(mat)
+
+    def __radd__(self, other):
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] = other + mat[i][j]
+        
+        return Matrix(mat)
+ 
+    def __mul__(self, other):
+        if isinstance(other, Matrix):
+            if self.shape != other.shape:
+                raise ValueError
+
+            Mat = copy.deepcopy(self)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    Mat.mat[i][j] *= other.mat[i][j]
+
+            return Mat 
+        
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] *= other
+        
+        return Matrix(mat)
+ 
+    def __rmul__(self, other):
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] = other * mat[i][j]
+        
+        return Matrix(mat)
+
+    def __truediv__(self, other):
+        if isinstance(other, Matrix):
+            if self.shape != other.shape:
+                raise ValueError
+
+            Mat = copy.deepcopy(self)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    Mat.mat[i][j] /= other.mat[i][j]
+            return Mat 
+        
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] /= other
+        
+        return Matrix(mat)
+
+    def __rtruediv__(self, other):
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] = other / mat[i][j]
+        
+        return Matrix(mat)
+     
+    def __sub__(self, other):
+        if isinstance(other, Matrix):
+            if self.shape != other.shape:
+                raise ValueError
+
+            Mat = copy.deepcopy(self)
+            for i in range(self.shape[0]):
+                for j in range(self.shape[1]):
+                    Mat.mat[i][j] -= other.mat[i][j]
+            return Mat 
+        
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] -= other
+        
+        return Matrix(mat)
+ 
+    def __rsub__(self, other):
+        mat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                mat[i][j] = other - mat[i][j]
+        
+        return Matrix(mat)
 
     def __matmul__(self, other):
         if not (type(other)==Matrix):
@@ -160,48 +321,33 @@ class Matrix(Expression):
                     mat[i][k] += self.mat[i][j]*other.mat[j][k]
         
         return Matrix(mat)
+    
+    def evaluate(self):
+        evalmat = copy.deepcopy(self.mat)
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                evalmat[i][j] = evalmat[i][j].evaluate()
+        
+        return evalmat
 
 def matfromshape(name, shape):
     if not (type(shape)==tuple):
         raise ValueError
     
     mat = [[Variable(f'{name}_{{{i+1}{j+1}}}') for j in range(shape[1])] for i in range(shape[0])]
+    
     return Matrix(mat)
 
 
 if __name__=='__main__':
-    # r = Variable('r')
-    # G = Variable('G')
-    # m = Variable('m')
-    # M = Variable('M')
-
-    # F = G*M*m/r**2
-
-    # a = 2*r
-    # b = 2-r
-    # c = 2**r
-    # d = 2 / r
-
-    # print(a.toTex())
-    # print(b.toTex())
-    # print(c.toTex())
-    # print(d.toTex())
-
-
-    # # rendering
-    import matplotlib.pyplot as plt
-
-    ax = plt.axes()
-    ax.set_xticks([])
-    ax.set_yticks([])
-
     A = matfromshape('a', (3, 4))
     B = matfromshape('b', (4, 2))
     C = matfromshape('c', (2, 5))
-    D = matfromshape('d', (5, 2))
+    D = matfromshape('d', (3, 4))
 
+    a = Variable('\\alpha')
 
-    E = A @ B @ C @ D
-
-    print(E.shape)
-    print(E.toTex())
+    print(A+a)
+    print(A-a)
+    print(A/a)
+    print(A*a)

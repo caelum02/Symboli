@@ -1,4 +1,4 @@
-from operators import Operator
+from symboli.operator import Operator
 from abc import ABC, abstractmethod
 import numpy as np
 

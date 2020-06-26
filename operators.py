@@ -1,6 +1,5 @@
 from abc import ABC
-from symbol import Symbol
-from expression import Constant
+from symboli.symbol import Symbol
 import numpy as np
 
 class Operator(Symbol, ABC):
@@ -8,9 +7,10 @@ class Operator(Symbol, ABC):
         if len(self.operands) != self.operand_num:
             raise ValueError
 
+        from symboli.expression import Constant
         for i, operand in enumerate(self.operands):
             if not isinstance(operand, Symbol):
-                self.operands[i] = Constant(str(operand), operand)
+                self.operands[i] =Constant(str(operand), operand)
     
 class BinaryOperator(Operator):
     def __init__(self, *operands):
