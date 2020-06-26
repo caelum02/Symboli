@@ -1,6 +1,7 @@
 from abc import ABC
 from symbol import Symbol
 from expression import Constant
+import numpy as np
 
 class Operator(Symbol, ABC):
     def _operand_type_check(self):
@@ -16,12 +17,7 @@ class BinaryOperator(Operator):
         self.operand_num = 2
         self.operands = list(operands)
        
-class UnaryOperatorL(Operator):
-    def __init__(self, *operands):
-        self.operand_num = 1
-        self.operands = list(operands)
-
-class UnaryOperatorR(Operator):
+class UnaryOperator(Operator):
     def __init__(self, *operands):
         self.operand_num = 1
         self.operands = list(operands)
@@ -76,18 +72,6 @@ class DivOp(BinaryOperator):
     def toTex(self):
         return ''
 
-class NegOp(UnaryOperatorL):
-    def __init__(self, *operands):
-        super(NegOp, self).__init__(*operands)
-        self.type = '-'
-        self._operand_type_check()
-    
-    def evaluate(self):
-        return - self.operand[0].evaluate()
-    
-    def toTex(self):
-        return '-'
-
 class PowOp(BinaryOperator):
     def __init__(self, *operands):
         super(PowOp, self).__init__(*operands)
@@ -99,4 +83,28 @@ class PowOp(BinaryOperator):
     
     def toTex(self):
         return '^'
+
+class NegOp(UnaryOperator):
+    def __init__(self, *operands):
+        super(NegOp, self).__init__(*operands)
+        self.type = '-'
+        self._operand_type_check()
+    
+    def evaluate(self):
+        return - self.operand[0].evaluate()
+    
+    def toTex(self):
+        return '-'
+    
+class DiffOp(UnaryOperator):
+    '''
+        TODO: Implement Differentiation
+    '''
+    pass
+
+class PartialOp(UnaryOperator):
+    '''
+        TODO: Implement Partial Differentiation
+    '''
+    pass
 

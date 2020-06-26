@@ -12,10 +12,11 @@ class Expression(Symbol):
 
     def toTex(self):
         expr_0 = self.expr[0].toTex()
-        expr_1 = self.expr[1].toTex()
         oper = self.operator.toTex()
 
         if isinstance(self.operator, op.BinaryOperator):
+            expr_1 = self.expr[1].toTex()
+
             if isinstance(self.operator, (op.SumOp, op.SubOp)):
                 return expr_0 + oper + expr_1
 
@@ -30,7 +31,14 @@ class Expression(Symbol):
 
             if type(self.operator) == op.DivOp:
                 return f'\\frac{{{expr_0}}}{{{expr_1}}}'
+            
+        elif isinstance(self.operator, op.Function):
+            return f'{oper}\\left({expr_0}\\right)'
         
+        elif isintance(self.operator, op.UnaryOperator):
+            if isinstance(self.expr[0].operator, (op.SumOp, op.SubOp)):
+                return oper+f'\\left({expr_0}\\right)'
+
     def __add__(self, expr):
         return Expression(op.SumOp(self, expr), self, expr)
 
@@ -48,6 +56,33 @@ class Expression(Symbol):
 
     def __radd__(self, expr):
         return Expression(op.SumOp(expr, self), expr, self)
+
+    def __rsub__(self, expr):
+        return Expression(op.SubOp(expr, self), expr, self)
+    
+    def __rmul__(self, expr):
+        return Expression(op.MulOp(expr, self), expr, self)
+
+    def __rtruediv__(self, expr):
+        return Expression(op.DivOp(expr, self), expr, self)
+
+    def __rpow__(self, expr):
+        return Expression(op.PowOp(expr, self), expr, self)
+
+    def __iadd__(self, other):
+        return self + other
+
+    def __isub__(self, other):
+        return self - other
+    
+    def __imul__(self, other):
+        return self * other
+    
+    def __itruediv__(self, other):
+        return self / other
+    
+    def __ipow__(self, other):
+        return self ** other
 
     def evaluate(self):
         return self.operator.evaluate()
@@ -76,7 +111,6 @@ class Constant(Variable):
     def evaluate(self):
         return self._value
 
-
 class Matrix(Expression):
     def __init__(self, mat):
         self.mat = mat
@@ -86,30 +120,88 @@ class Matrix(Expression):
         shape = []
         M = self.mat
 
-        while not isinstance(M, Expression):
+        while type(M) == list:
             shape.append(len(M))
             M = M[0]
 
         return tuple(shape)
 
+    def toTex(self):
+        texstr = '\\begin{pmatrix}'
+
+        for i in range(self.shape[0]):
+            if i != 0:
+                texstr += ' \\\\'
+            for j in range(self.shape[1]):
+                if j!=0:
+                    texstr += ' &'
+                texstr += f' {self.mat[i][0].toTex()}'
+
+        texstr += ' \\end{pmatrix}'
+
+        return texstr
+
     def __add__(self, other):
-        if isinstance(self.other, Matrix):
-            pass
+        if isinstance(other, Matrix):
+            
+
+    def __matmul__(self, other):
+        if not (type(other)==Matrix):
+            raise TypeError
+
+        if not self.shape[1]==other.shape[0]:
+            raise ValueError
+
+        mat = [[0]*other.shape[1] for _ in range(self.shape[0])]
+        for i in range(self.shape[0]):
+            for k in range(other.shape[1]):
+                mat[i][k] = self.mat[i][0] * other.mat[0][k]
+                for j in range(1, self.shape[1]):
+                    mat[i][k] += self.mat[i][j]*other.mat[j][k]
+        
+        return Matrix(mat)
+
+def matfromshape(name, shape):
+    if not (type(shape)==tuple):
+        raise ValueError
     
+    mat = [[Variable(f'{name}_{{{i+1}{j+1}}}') for j in range(shape[1])] for i in range(shape[0])]
+    return Matrix(mat)
+
+
 if __name__=='__main__':
-    r = Variable('r')
-    G = Variable('G')
-    m = Variable('m')
-    M = Variable('M')
+    # r = Variable('r')
+    # G = Variable('G')
+    # m = Variable('m')
+    # M = Variable('M')
 
-    F = G*M*m/r**2
+    # F = G*M*m/r**2
 
-    # rendering
+    # a = 2*r
+    # b = 2-r
+    # c = 2**r
+    # d = 2 / r
+
+    # print(a.toTex())
+    # print(b.toTex())
+    # print(c.toTex())
+    # print(d.toTex())
+
+
+    # # rendering
     import matplotlib.pyplot as plt
 
     ax = plt.axes()
     ax.set_xticks([])
     ax.set_yticks([])
-    plt.text(0.5, 0.5, f'$F={F.toTex()}$')
 
-    plt.show()
+    A = matfromshape('a', (3, 4))
+    B = matfromshape('b', (4, 2))
+    C = matfromshape('c', (2, 5))
+    D = matfromshape('d', (5, 2))
+
+
+    E = A @ B @ C @ D
+
+    print(E.shape)
+    print(E.toTex())
