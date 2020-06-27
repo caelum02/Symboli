@@ -1,12 +1,13 @@
-from symboli.operator import Operator
+from symboli.operators import Operator
 from abc import ABC, abstractmethod
 import numpy as np
+from symboli.expression import Expression
 
 class Function(Operator, ABC):
     def __init__(self, *operands):
         self.operands = operands
     
-    @abstractmathod
+    @abstractmethod
     def evaluate(self):
         pass
 
@@ -14,8 +15,8 @@ class Function(Operator, ABC):
     def toTex(self):
         pass
 
-class exp(Function):
-    def __init__(self. *operands):
+class ExpFunc(Function):
+    def __init__(self, *operands):
         super(exp, self).__init__(*operands)
     
     def evaluate(self):
@@ -24,7 +25,7 @@ class exp(Function):
     def toTex(self):
         return '\\exp'
 
-class sin(Function):
+class SinFunc(Function):
     def __init__(self, *operands):
         super(sin, self).__init__(*operands)
 
@@ -34,7 +35,7 @@ class sin(Function):
     def toTex(self):
         return '\\sin'
 
-class cos(Function):
+class CosFunc(Function):
     def __init__(self, *operands):
         super(cos, self).__init__(*operands)
     
@@ -44,7 +45,7 @@ class cos(Function):
     def toTex(self):
         return '\\cos'
 
-class tan(Function):
+class TanFunc(Function):
     def __init__(self, *operands):
         super(tan, self).__init__(*operands)
     
@@ -54,7 +55,7 @@ class tan(Function):
     def toTex(self):
         return '\\tan'
 
-class cot(Function):
+class CotFunc(Function):
     def __init__(self, *operands):
         super(cot, self).__init__(*operands)
     
@@ -64,7 +65,7 @@ class cot(Function):
     def toTex(self):
         return '\\cot'
 
-class sec(Function):
+class SecFunc(Function):
     def __init__(self, *operands):
         super(sec, self).__init__(*operands)
     
@@ -74,7 +75,7 @@ class sec(Function):
     def toTex(self):
         return '\\sec'
 
-class csc(Function):
+class CscFunc(Function):
     def __init__(self, *operands):
         super(csc, self).__init__(*operands)
     
@@ -84,7 +85,7 @@ class csc(Function):
     def toTex(self):
         return '\\csc'
 
-class log(Function):
+class LogFunc(Function):
     def __init__(self, *operands):
         super(log, self).__init__(*operands)
     
@@ -94,3 +95,23 @@ class log(Function):
     def toTex(self):
         return '\\log'
 
+def exp(operand):
+    return Expression(ExpFunc(operand), operand)
+
+def sin(operand):
+    return Expression(SinFunc(operand), operand)
+
+def cos(operand):
+    return Expression(CosFunc(operand), operand)
+
+def tan(operand):
+    return Expression(TanFunc(operand), operand)
+
+def csc(operand):
+    return Expression(CscFunc(operand), operand)
+
+def sec(operand):
+    return Expression(SecFunc(operand), operand)
+
+def cot(operand):
+    return Expression(CotFunc(operand), operand)
