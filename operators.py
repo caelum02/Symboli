@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from symboli.symbol import Symbol
 import numpy as np
 
@@ -108,3 +108,14 @@ class PartialOp(UnaryOperator):
     '''
     pass
 
+class Function(Operator, ABC):
+    def __init__(self, *operands):
+        self.operands = operands
+    
+    @abstractmethod
+    def evaluate(self):
+        pass
+
+    @abstractmethod
+    def toTex(self):
+        pass

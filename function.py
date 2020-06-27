@@ -1,23 +1,11 @@
-from symboli.operators import Operator
+from symboli.operators import Operator, Function
 from abc import ABC, abstractmethod
 import numpy as np
 from symboli.expression import Expression
 
-class Function(Operator, ABC):
-    def __init__(self, *operands):
-        self.operands = operands
-    
-    @abstractmethod
-    def evaluate(self):
-        pass
-
-    @abstractmethod
-    def toTex(self):
-        pass
-
 class ExpFunc(Function):
     def __init__(self, *operands):
-        super(exp, self).__init__(*operands)
+        super(ExpFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.exp(self.operand[0].evaluate())
@@ -27,7 +15,7 @@ class ExpFunc(Function):
 
 class SinFunc(Function):
     def __init__(self, *operands):
-        super(sin, self).__init__(*operands)
+        super(SinFunc, self).__init__(*operands)
 
     def evaluate(self):
         return np.sin(self.operand[0].evaluate())
@@ -37,7 +25,7 @@ class SinFunc(Function):
 
 class CosFunc(Function):
     def __init__(self, *operands):
-        super(cos, self).__init__(*operands)
+        super(CosFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.cos(self.operand[0].evaluate())
@@ -47,7 +35,7 @@ class CosFunc(Function):
 
 class TanFunc(Function):
     def __init__(self, *operands):
-        super(tan, self).__init__(*operands)
+        super(TanFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.tan(self.operand[0].evaluate())
@@ -57,7 +45,7 @@ class TanFunc(Function):
 
 class CotFunc(Function):
     def __init__(self, *operands):
-        super(cot, self).__init__(*operands)
+        super(CotFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.cot(self.operand[0].evaluate())
@@ -67,7 +55,7 @@ class CotFunc(Function):
 
 class SecFunc(Function):
     def __init__(self, *operands):
-        super(sec, self).__init__(*operands)
+        super(SecFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.sec(self.operand[0].evaluate())
@@ -77,7 +65,7 @@ class SecFunc(Function):
 
 class CscFunc(Function):
     def __init__(self, *operands):
-        super(csc, self).__init__(*operands)
+        super(CscFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.csc(self.operand[0].evaluate())
@@ -87,7 +75,7 @@ class CscFunc(Function):
 
 class LogFunc(Function):
     def __init__(self, *operands):
-        super(log, self).__init__(*operands)
+        super(LogFunc, self).__init__(*operands)
     
     def evaluate(self):
         return np.log(self.operand[0].evaluate())
